@@ -1,4 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import ShoutboxClient from '@/components/shoutbox/ShoutboxClient'
 import { type Message, type User, type RawReactionFromDB, type ReactionSummary } from '@/types'
 
@@ -17,8 +18,14 @@ export default async function HomePage() {
   const supabase = await createServerClient()
   const { data: { user: authUser } } = await supabase.auth.getUser()
 
+  // Service role client for messages — bypasses auth so SSR always returns data
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const [messagesResult, userResult, onlineResult] = await Promise.all([
-    supabase.rpc('get_messages', {
+    adminSupabase.rpc('get_messages', {
       p_limit: 50,
       p_before: new Date().toISOString(),
       p_search: null,
@@ -26,7 +33,7 @@ export default async function HomePage() {
     authUser
       ? supabase.from('users').select('*').eq('id', authUser.id).single()
       : Promise.resolve({ data: null, error: null }),
-    supabase.rpc('get_online_count'),
+    adminSupabase.rpc('get_online_count'),
   ])
 
   const rawMessages = messagesResult.data ?? []

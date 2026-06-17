@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { type Message, type User, type TypingUser, type TrendingTopic } from '@/types'
 
 interface ShoutboxState {
@@ -41,7 +42,9 @@ interface ShoutboxState {
   cacheUser: (userId: string, data: { nickname: string; nickname_color: string }) => void
 }
 
-export const useShoutboxStore = create<ShoutboxState>((set) => ({
+export const useShoutboxStore = create<ShoutboxState>()(
+  persist(
+    (set) => ({
   messages: [],
   currentUser: null,
   onlineCount: 0,
@@ -172,4 +175,13 @@ export const useShoutboxStore = create<ShoutboxState>((set) => ({
   cacheUser: (userId, data) => set((s) => ({
     usersCache: { ...s.usersCache, [userId]: data },
   })),
-}))
+    }),
+    {
+      name: 'aiub-shout-cache',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        messages: state.messages.slice(0, 50),
+      }),
+    }
+  )
+)

@@ -50,7 +50,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-dvh flex flex-col items-center justify-center px-4"
+      className="min-h-dvh flex flex-col items-center justify-center px-4 py-10"
       style={{ background: 'var(--background)' }}
     >
       {/* Logo */}
@@ -196,6 +196,37 @@ export default function LoginPage() {
       >
         Your real identity is never shown publicly
       </motion.p>
+
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55 }}
+        className="mt-8 mb-8 w-full max-w-sm text-center space-y-4 px-4"
+      >
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-foreground)', opacity: 0.6 }}>
+          AIUB Shout is a web based independent student powered shout box platform built for the AIUB community.
+          Share confessions, opinions, questions, campus updates, advice and discussions with fellow students 24/7.
+          Or, just chat when you&apos;re bored! Whether you choose to stay anonymous or not, your voice deserves to be heard.
+        </p>
+
+        <a
+          href="https://www.facebook.com/profile.php?id=61590655334700"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90"
+          style={{ background: '#1877F2', color: '#fff' }}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Follow on Facebook
+        </a>
+
+        <p className="text-xs" style={{ color: 'var(--muted-foreground)', opacity: 0.35 }}>
+          © 2026 AIUB Shout · All rights reserved
+        </p>
+      </motion.div>
     </div>
   )
 }

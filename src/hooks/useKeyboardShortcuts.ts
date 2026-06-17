@@ -30,9 +30,6 @@ export function useKeyboardShortcuts(handlers: Handlers) {
       if (e.key === '/') {
         e.preventDefault()
         handlersRef.current.onOpenSearch?.()
-      } else if (e.key === 'n' || e.key === 'N') {
-        e.preventDefault()
-        handlersRef.current.onFocusComposer?.()
       }
     }
 

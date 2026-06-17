@@ -33,12 +33,19 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
   const [focused, setFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Keyboard shortcut: n → focus composer
+  // Auto-focus composer on any printable keypress when nothing else is focused
   useEffect(() => {
     if (compact || parentId) return
-    function onFocus() { textareaRef.current?.focus() }
-    window.addEventListener('shoutbox:focus-composer', onFocus)
-    return () => window.removeEventListener('shoutbox:focus-composer', onFocus)
+    function onGlobalKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      const isEditable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+      if (isEditable || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key.length !== 1) return
+      textareaRef.current?.focus()
+      setText(t => t + e.key)
+    }
+    window.addEventListener('keydown', onGlobalKey)
+    return () => window.removeEventListener('keydown', onGlobalKey)
   }, [compact, parentId])
 
   useEffect(() => {

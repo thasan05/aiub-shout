@@ -8,14 +8,25 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useShoutboxStore } from '@/store/shoutboxStore'
 import ThemeToggle from './ThemeToggle'
-import { LogOut, User, Search, X, ShieldAlert } from 'lucide-react'
+import { LogOut, User, Search, X, ShieldAlert, Pencil, Check } from 'lucide-react'
 import { toast } from 'sonner'
 
+const COLOR_OPTIONS = [
+  '#60A5FA','#94A3B8','#F87171','#FBBF24','#4ADE80',
+  '#C084FC','#A78BFA','#FB7185','#38BDF8','#34D399',
+  '#FCD34D','#FB923C','#7DD3FC','#E2E8F0','#93C5FD',
+  '#86EFAC','#22D3EE','#FCA5A5','#BAE6FD','#DDD6FE',
+]
+
 export default function Header() {
-  const { currentUser, onlineCount, searchQuery, setSearchQuery } = useShoutboxStore()
+  const { currentUser, onlineCount, searchQuery, setSearchQuery, setCurrentUser } = useShoutboxStore()
   const [searchOpen, setSearchOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [displayedCount, setDisplayedCount] = useState(onlineCount)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [newNickname, setNewNickname] = useState('')
+  const [newColor, setNewColor] = useState('')
+  const [saving, setSaving] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -53,6 +64,35 @@ export default function Header() {
     toast.success('Signed out')
     router.refresh()
     setUserMenuOpen(false)
+  }
+
+  function startEdit() {
+    setNewNickname(currentUser?.nickname ?? '')
+    setNewColor(currentUser?.nickname_color ?? '#60A5FA')
+    setEditingProfile(true)
+  }
+
+  async function saveProfile() {
+    const trimmed = newNickname.trim()
+    if (trimmed.length < 2 || trimmed.length > 20) {
+      toast.error('Nickname must be 2–20 characters')
+      return
+    }
+    setSaving(true)
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname: trimmed, nickname_color: newColor }),
+    })
+    setSaving(false)
+    if (res.ok) {
+      setCurrentUser({ ...currentUser!, nickname: trimmed, nickname_color: newColor })
+      setEditingProfile(false)
+      toast.success('Profile updated')
+    } else {
+      const data = await res.json()
+      toast.error(data.error || 'Failed to update')
+    }
   }
 
   return (
@@ -210,6 +250,70 @@ export default function Header() {
                           Moderation
                         </Link>
                       )}
+
+                      {/* Edit profile */}
+                      {!editingProfile ? (
+                        <button
+                          onClick={startEdit}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-left"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          Edit profile
+                        </button>
+                      ) : (
+                        <div className="px-3 py-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <p className="text-xs mb-1.5 font-medium" style={{ color: 'var(--muted-foreground)' }}>Nickname</p>
+                          <input
+                            type="text"
+                            value={newNickname}
+                            onChange={e => setNewNickname(e.target.value)}
+                            maxLength={20}
+                            className="w-full text-xs px-2 py-1.5 rounded-lg outline-none mb-2"
+                            style={{
+                              background: 'var(--surface-2)',
+                              border: '1px solid var(--border)',
+                              color: 'var(--foreground)',
+                            }}
+                            onKeyDown={e => e.key === 'Enter' && saveProfile()}
+                            autoFocus
+                          />
+                          <p className="text-xs mb-1.5 font-medium" style={{ color: 'var(--muted-foreground)' }}>Color</p>
+                          <div className="grid grid-cols-10 gap-1 mb-2">
+                            {COLOR_OPTIONS.map(c => (
+                              <button
+                                key={c}
+                                onClick={() => setNewColor(c)}
+                                className="w-5 h-5 rounded-full transition-transform hover:scale-110"
+                                style={{
+                                  background: c,
+                                  outline: newColor === c ? `2px solid ${c}` : 'none',
+                                  outlineOffset: 2,
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => setEditingProfile(false)}
+                              className="flex-1 text-xs py-1 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                              style={{ color: 'var(--muted-foreground)' }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={saveProfile}
+                              disabled={saving}
+                              className="flex-1 text-xs py-1 rounded-lg flex items-center justify-center gap-1 transition-opacity disabled:opacity-50"
+                              style={{ background: newColor, color: '#fff' }}
+                            >
+                              <Check className="w-3 h-3" />
+                              {saving ? 'Saving…' : 'Save'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <button
                         onClick={signOut}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-left"

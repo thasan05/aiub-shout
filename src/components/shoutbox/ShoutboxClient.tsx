@@ -257,7 +257,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
               paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
             }}
           >
-            <kbd>/</kbd> search · <kbd>n</kbd> compose · <kbd>Shift+↵</kbd> newline
+            <kbd>/</kbd> search · <kbd>Shift+↵</kbd> newline
           </p>
         </div>
       </div>

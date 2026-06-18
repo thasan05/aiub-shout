@@ -40,7 +40,12 @@ export default function LoginPage() {
 
     if (authError) {
       console.error('Auth error:', authError)
-      setError(authError.message || `Error ${authError.status ?? ''} — check Supabase auth logs`)
+      const msg = authError.message && authError.message !== '{}' && authError.message !== ''
+        ? authError.message
+        : authError.status === 429
+          ? 'Too many attempts — wait 60 seconds and try again'
+          : 'Failed to send email. Try again in a minute.'
+      setError(msg)
       toast.error('Failed to send magic link')
       return
     }

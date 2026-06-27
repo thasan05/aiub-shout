@@ -69,23 +69,15 @@ export async function POST(request: NextRequest) {
   const mod = moderateContent(content ?? '')
   if (!mod.allowed) return NextResponse.json({ error: mod.reason }, { status: 400 })
 
-  // Fetch profile — check ban status before doing anything
-  const { data: profile } = await supabase
-    .from('users')
-    .select('nickname, nickname_color, is_banned')
-    .eq('id', user.id)
-    .single()
+  // Fetch profile and rate limit in parallel to cut latency
+  const [{ data: profile }, { data: rateOk }] = await Promise.all([
+    supabase.from('users').select('nickname, nickname_color, is_banned').eq('id', user.id).single(),
+    supabase.rpc('check_rate_limit', { p_user_id: user.id, p_limit: 5, p_window_seconds: 30 }),
+  ])
 
   if (profile?.is_banned) {
     return NextResponse.json({ error: 'Your account has been suspended' }, { status: 403 })
   }
-
-  // Rate limit
-  const { data: rateOk } = await supabase.rpc('check_rate_limit', {
-    p_user_id: user.id,
-    p_limit: 5,
-    p_window_seconds: 30,
-  })
   if (!rateOk) {
     return NextResponse.json({ error: 'Slow down! Max 5 messages per 30 seconds.' }, { status: 429 })
   }

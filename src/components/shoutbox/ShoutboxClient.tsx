@@ -8,7 +8,9 @@ import Header from '@/components/layout/Header'
 import MessageList from './MessageList'
 import MessageComposer from './MessageComposer'
 import TypingIndicator from './TypingIndicator'
+import WallpaperPicker from './WallpaperPicker'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { useWallpaper } from '@/hooks/useWallpaper'
 
 interface Props {
   initialMessages: Message[]
@@ -34,12 +36,20 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
   const presenceTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const initializedRef = useRef(false)
   const [tabUnread, setTabUnread] = useState(0)
+  const [wallpaperOpen, setWallpaperOpen] = useState(false)
+  const { wallpaperUrl } = useWallpaper()
 
   useKeyboardShortcuts({
     onOpenSearch: () => window.dispatchEvent(new CustomEvent('shoutbox:open-search')),
     onFocusComposer: () => window.dispatchEvent(new CustomEvent('shoutbox:focus-composer')),
     onEscape: () => window.dispatchEvent(new CustomEvent('shoutbox:escape')),
   })
+
+  useEffect(() => {
+    function onOpen() { setWallpaperOpen(true) }
+    window.addEventListener('shoutbox:open-wallpaper', onOpen)
+    return () => window.removeEventListener('shoutbox:open-wallpaper', onOpen)
+  }, [])
 
   useEffect(() => {
     if (tabUnread > 0) {
@@ -240,7 +250,17 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
     <div className="flex flex-col h-dvh overflow-hidden">
       <Header />
 
-      <div className="flex-1 flex flex-col overflow-hidden w-full max-w-3xl mx-auto">
+      <WallpaperPicker open={wallpaperOpen} onClose={() => setWallpaperOpen(false)} />
+
+      <div
+        className="flex-1 flex flex-col overflow-hidden w-full max-w-3xl mx-auto"
+        style={wallpaperUrl ? {
+          backgroundImage: `url(${wallpaperUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'local',
+        } : undefined}
+      >
         <MessageList />
         <TypingIndicator />
 

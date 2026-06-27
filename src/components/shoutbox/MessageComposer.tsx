@@ -31,6 +31,7 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [focused, setFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const sendingRef = useRef(false)
 
   // Auto-focus composer on any printable keypress when nothing else is focused
   useEffect(() => {
@@ -60,7 +61,8 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
 
   async function send() {
     const content = text.trim()
-    if (!content || !currentUser) return
+    if (!content || !currentUser || sendingRef.current) return
+    sendingRef.current = true
 
     const tempId = `temp-${Date.now()}`
     const optimistic = {
@@ -99,6 +101,7 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
       if (!parentId) useShoutboxStore.getState().removeMessage(tempId)
       setText(content)
     }
+    sendingRef.current = false
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

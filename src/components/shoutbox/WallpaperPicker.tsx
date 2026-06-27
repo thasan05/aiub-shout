@@ -70,7 +70,7 @@ export default function WallpaperPicker({ open, onClose }: Props) {
               >
                 <ImageOff className="w-5 h-5" style={{ color: 'var(--muted-foreground)' }} />
                 {!wallpaper && (
-                  <div className="absolute inset-0 rounded-xl ring-2 ring-inset" style={{ ringColor: 'var(--primary)' }} />
+                  <div className="absolute inset-0 rounded-xl ring-2 ring-inset ring-blue-500" />
                 )}
               </button>
 

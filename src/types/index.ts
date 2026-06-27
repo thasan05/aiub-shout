@@ -45,6 +45,7 @@ export interface Message {
   reactions: ReactionSummary[]
   replies?: Message[]
   replies_loaded?: boolean
+  edited_at?: string | null
   // Optimistic update tracking
   is_pending?: boolean
   temp_id?: string

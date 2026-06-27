@@ -44,3 +44,39 @@ export async function DELETE(
 
   return NextResponse.json({ success: true })
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { content } = await request.json()
+  if (!content?.trim()) return NextResponse.json({ error: 'Content required' }, { status: 400 })
+  if (content.trim().length > 200) return NextResponse.json({ error: 'Too long' }, { status: 400 })
+
+  const { data: msg } = await supabase
+    .from('messages').select('user_id, created_at').eq('id', id).single()
+
+  if (!msg || msg.user_id !== user.id) {
+    return NextResponse.json({ error: 'Not your message' }, { status: 403 })
+  }
+
+  const ageMs = Date.now() - new Date(msg.created_at).getTime()
+  if (ageMs > 5 * 60 * 1000) {
+    return NextResponse.json({ error: 'Can only edit within 5 minutes' }, { status: 403 })
+  }
+
+  const { error } = await supabase
+    .from('messages')
+    .update({ content: content.trim(), edited_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ success: true, content: content.trim() })
+}

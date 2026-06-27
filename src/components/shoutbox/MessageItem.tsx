@@ -90,17 +90,21 @@ interface Props {
 }
 
 export default function MessageItem({ message, isReply = false, searchQuery = '', skipEntrance = false }: Props) {
-  const { currentUser, toggleReactionOptimistic, removeMessage } = useShoutboxStore()
+  const { currentUser, toggleReactionOptimistic, removeMessage, updateMessage } = useShoutboxStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
   const [repliesOpen, setRepliesOpen] = useState(false)
   const [poppingEmoji, setPoppingEmoji] = useState<string | null>(null)
   const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [editText, setEditText] = useState(message.content)
+  const [editSaving, setEditSaving] = useState(false)
 
   const isOwn = currentUser?.id === message.user_id
   const isPending = message.is_pending
   const activeReactions = message.reactions.filter(r => r.count > 0)
   const relativeTime = useRelativeTime(message.created_at)
+  const canEdit = isOwn && !isPending && (Date.now() - new Date(message.created_at).getTime()) < 5 * 60 * 1000
   const firstUrl = useMemo(() => {
     if (message.is_pending || isReply) return null
     const m = message.content.match(URL_REGEX_PREVIEW)
@@ -141,6 +145,26 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
     toast.success('Copied')
   }
 
+  async function handleEdit() {
+    const trimmed = editText.trim()
+    if (!trimmed || trimmed === message.content) { setEditing(false); return }
+    setEditSaving(true)
+    const res = await fetch(`/api/messages/${message.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: trimmed }),
+    })
+    setEditSaving(false)
+    if (res.ok) {
+      updateMessage(message.id, { content: trimmed, edited_at: new Date().toISOString() })
+      setEditing(false)
+      toast.success('Edited')
+    } else {
+      const d = await res.json()
+      toast.error(d.error || 'Failed to edit')
+    }
+  }
+
   return (
     <>
       <motion.div
@@ -173,9 +197,39 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
               </span>
             )}
             <span style={{ color: 'var(--muted-foreground)', opacity: 0.55 }}>: </span>
-            <span className="message-content" style={{ color: 'var(--foreground)' }}>
-              <MessageContent text={message.content} query={searchQuery} />
-            </span>
+            {editing ? (
+              <span className="inline-flex items-center gap-1 ml-1">
+                <input
+                  autoFocus
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEdit() }
+                    if (e.key === 'Escape') setEditing(false)
+                  }}
+                  maxLength={210}
+                  className="text-sm bg-transparent outline-none border-b"
+                  style={{ borderColor: 'var(--primary)', color: 'var(--foreground)', minWidth: 120 }}
+                />
+                <button onClick={handleEdit} disabled={editSaving}
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  style={{ background: 'var(--primary)', color: 'var(--primary-foreground)', opacity: editSaving ? 0.6 : 1 }}>
+                  {editSaving ? '…' : 'Save'}
+                </button>
+                <button onClick={() => setEditing(false)}
+                  className="text-[10px] px-1 py-0.5 rounded"
+                  style={{ color: 'var(--muted-foreground)' }}>
+                  ✕
+                </button>
+              </span>
+            ) : (
+              <span className="message-content" style={{ color: 'var(--foreground)' }}>
+                <MessageContent text={message.content} query={searchQuery} />
+                {message.edited_at && (
+                  <span className="text-[10px] ml-1" style={{ color: 'var(--muted-foreground)', opacity: 0.5 }}>(edited)</span>
+                )}
+              </span>
+            )}
           </span>
 
           {/* Hover menu */}
@@ -218,6 +272,16 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
                       >
                         <Flag className="w-3 h-3" />
                         Report
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button
+                        onClick={() => { setMenuOpen(false); setEditing(true); setEditText(message.content) }}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-left"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit
                       </button>
                     )}
                     {isOwn && (

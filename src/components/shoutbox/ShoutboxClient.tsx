@@ -12,6 +12,7 @@ import WallpaperPicker from './WallpaperPicker'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useWallpaper } from '@/hooks/useWallpaper'
 import { useNotificationSound } from '@/hooks/useNotificationSound'
+import { useBrowserNotifications } from '@/hooks/useBrowserNotifications'
 
 interface Props {
   initialMessages: Message[]
@@ -40,6 +41,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
   const [wallpaperOpen, setWallpaperOpen] = useState(false)
   const { wallpaperUrl } = useWallpaper()
   const { ping } = useNotificationSound()
+  const { notify } = useBrowserNotifications()
 
   useKeyboardShortcuts({
     onOpenSearch: () => window.dispatchEvent(new CustomEvent('shoutbox:open-search')),
@@ -141,6 +143,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
           } else {
             addMessage(message)
             ping()
+            notify('AIUB Shout', `${message.nickname}: ${message.content.slice(0, 80)}`)
             if (!document.hasFocus()) setTabUnread(n => n + 1)
           }
         }

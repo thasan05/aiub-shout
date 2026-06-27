@@ -8,8 +8,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useShoutboxStore } from '@/store/shoutboxStore'
 import ThemeToggle from './ThemeToggle'
-import { LogOut, User, Search, X, ShieldAlert, Pencil, Check, ImageIcon, Volume2, VolumeX } from 'lucide-react'
+import { LogOut, User, Search, X, ShieldAlert, Pencil, Check, ImageIcon, Volume2, VolumeX, Bell, BellOff } from 'lucide-react'
 import { getSound, setSound } from '@/hooks/useNotificationSound'
+import { useBrowserNotifications } from '@/hooks/useBrowserNotifications'
 import { toast } from 'sonner'
 
 const COLOR_OPTIONS = [
@@ -29,6 +30,7 @@ export default function Header() {
   const [newColor, setNewColor] = useState('')
   const [saving, setSaving] = useState(false)
   const [soundOn, setSoundOn] = useState(() => (typeof window !== 'undefined' ? getSound() : true))
+  const { requestPermission, permission } = useBrowserNotifications()
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -201,6 +203,19 @@ export default function Header() {
             >
               <ImageIcon className="w-4 h-4" />
             </button>
+
+            {/* Browser notification toggle */}
+            {permission !== 'denied' && (
+              <button
+                onClick={requestPermission}
+                className="p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                style={{ color: permission === 'granted' ? 'var(--primary)' : 'var(--muted-foreground)' }}
+                aria-label="Enable browser notifications"
+                title={permission === 'granted' ? 'Notifications on' : 'Enable notifications'}
+              >
+                {permission === 'granted' ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              </button>
+            )}
 
             {/* Sound toggle */}
             <button

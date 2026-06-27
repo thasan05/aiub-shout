@@ -17,9 +17,7 @@ export function useBrowserNotifications() {
     new Notification(title, {
       body,
       icon: '/logo2.png',
-      badge: '/logo2.png',
       tag: 'aiubshout-message',
-      renotify: true,
     })
   }, [])
 

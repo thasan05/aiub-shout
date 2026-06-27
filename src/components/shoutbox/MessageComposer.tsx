@@ -235,26 +235,14 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
           </button>
         )}
 
-        {/* Char counter */}
-        {text.length > 0 && (
-          <motion.span
-            key={Math.floor(remaining / 10)}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-xs ml-auto tabular-nums"
-            style={{
-              color: isOverLimit ? 'var(--destructive)' : isNearLimit ? '#F59E0B' : 'var(--muted-foreground)',
-            }}
-          >
-            {remaining}
-          </motion.span>
-        )}
-
-        {!text.length && !compact && (
-          <span className="text-xs ml-auto" style={{ color: 'var(--muted-foreground)', opacity: 0.4 }}>
-            ↵ to send
-          </span>
-        )}
+        {/* Char ring counter */}
+        <div className="ml-auto flex items-center">
+          {text.length > 0 ? (
+            <CharRing used={text.length} max={MAX_CHARS} />
+          ) : !compact ? (
+            <span className="text-xs" style={{ color: 'var(--muted-foreground)', opacity: 0.4 }}>↵ to send</span>
+          ) : null}
+        </div>
 
         <motion.button
           whileTap={{ scale: 0.88 }}
@@ -270,5 +258,35 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
         </motion.button>
       </div>
     </div>
+  )
+}
+
+function CharRing({ used, max }: { used: number; max: number }) {
+  const r = 9
+  const circumference = 2 * Math.PI * r
+  const pct = Math.min(used / max, 1)
+  const over = used > max
+  const warn = used > max * 0.85
+  const stroke = over ? 'var(--destructive)' : warn ? '#F59E0B' : 'var(--primary)'
+  const dashOffset = circumference * (1 - pct)
+
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22">
+      <circle cx="11" cy="11" r={r} fill="none" stroke="currentColor" strokeWidth="2"
+        style={{ color: 'var(--border)' }} />
+      <circle
+        cx="11" cy="11" r={r} fill="none" stroke={stroke} strokeWidth="2"
+        strokeDasharray={circumference}
+        strokeDashoffset={dashOffset}
+        strokeLinecap="round"
+        transform="rotate(-90 11 11)"
+        style={{ transition: 'stroke-dashoffset 0.15s, stroke 0.15s' }}
+      />
+      {over && (
+        <text x="11" y="14.5" textAnchor="middle" fontSize="7" fill="var(--destructive)" fontWeight="bold">
+          {used - max}
+        </text>
+      )}
+    </svg>
   )
 }

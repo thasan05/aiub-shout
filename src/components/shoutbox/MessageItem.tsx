@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageSquare, MoreHorizontal, Trash2, Flag, Copy, ShieldCheck } from 'lucide-react'
+import { MessageSquare, MoreHorizontal, Trash2, Flag, Copy } from 'lucide-react'
 import { useShoutboxStore } from '@/store/shoutboxStore'
 import ReportModal from './ReportModal'
 import ReplyThread from './ReplyThread'
+import LinkPreview from './LinkPreview'
 import { type Message, type ReactionEmoji } from '@/types'
 import { toast } from 'sonner'
 import { useRelativeTime } from '@/hooks/useRelativeTime'
+
+const URL_REGEX_PREVIEW = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
 
 const REACTIONS: { emoji: ReactionEmoji; label: string }[] = [
   { emoji: '👍', label: 'Helpful' },
@@ -98,6 +101,11 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
   const isPending = message.is_pending
   const activeReactions = message.reactions.filter(r => r.count > 0)
   const relativeTime = useRelativeTime(message.created_at)
+  const firstUrl = useMemo(() => {
+    if (message.is_pending || isReply) return null
+    const m = message.content.match(URL_REGEX_PREVIEW)
+    return m?.[0] ?? null
+  }, [message.content, message.is_pending, isReply])
 
   async function handleReaction(emoji: ReactionEmoji) {
     if (!currentUser) { toast.error('Sign in to react'); return }
@@ -228,6 +236,13 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
             </div>
           )}
         </div>
+
+        {/* Link preview */}
+        {firstUrl && (
+          <div className="pl-[5.2rem] pr-4 pb-1">
+            <LinkPreview url={firstUrl} />
+          </div>
+        )}
 
         {/* Reactions + action row */}
         {!isPending && (

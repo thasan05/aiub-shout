@@ -28,7 +28,6 @@ interface Props {
 export default function MessageComposer({ parentId, compact = false, onSent, onCancel }: Props) {
   const { currentUser, addMessage, addReply, replaceTempMessage } = useShoutboxStore()
   const [text, setText] = useState('')
-  const [sending, setSending] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [focused, setFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -61,9 +60,8 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
 
   async function send() {
     const content = text.trim()
-    if (!content || sending || !currentUser) return
+    if (!content || !currentUser) return
 
-    setSending(true)
     const tempId = `temp-${Date.now()}`
     const optimistic = {
       id: tempId,
@@ -90,7 +88,6 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content, parent_id: parentId ?? null }),
     })
-    setSending(false)
 
     if (res.ok) {
       const { message } = await res.json()
@@ -111,7 +108,7 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
   const remaining = MAX_CHARS - text.length
   const isOverLimit = remaining < 0
   const isNearLimit = remaining <= 20
-  const canSend = text.trim().length > 0 && !isOverLimit && !sending
+  const canSend = text.trim().length > 0 && !isOverLimit
 
   if (!currentUser) {
     if (compact) return null
@@ -160,7 +157,6 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
             color: 'var(--foreground)',
             caretColor: 'var(--primary)',
           }}
-          disabled={sending}
         />
       </div>
 

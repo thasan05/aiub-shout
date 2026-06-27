@@ -8,7 +8,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useShoutboxStore } from '@/store/shoutboxStore'
 import ThemeToggle from './ThemeToggle'
-import { LogOut, User, Search, X, ShieldAlert, Pencil, Check, ImageIcon } from 'lucide-react'
+import { LogOut, User, Search, X, ShieldAlert, Pencil, Check, ImageIcon, Volume2, VolumeX } from 'lucide-react'
+import { getSound, setSound } from '@/hooks/useNotificationSound'
 import { toast } from 'sonner'
 
 const COLOR_OPTIONS = [
@@ -27,6 +28,7 @@ export default function Header() {
   const [newNickname, setNewNickname] = useState('')
   const [newColor, setNewColor] = useState('')
   const [saving, setSaving] = useState(false)
+  const [soundOn, setSoundOn] = useState(() => (typeof window !== 'undefined' ? getSound() : true))
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -198,6 +200,17 @@ export default function Header() {
               aria-label="Chat wallpaper"
             >
               <ImageIcon className="w-4 h-4" />
+            </button>
+
+            {/* Sound toggle */}
+            <button
+              onClick={() => { const next = !soundOn; setSoundOn(next); setSound(next) }}
+              className="p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+              style={{ color: soundOn ? 'var(--muted-foreground)' : 'var(--destructive)' }}
+              aria-label={soundOn ? 'Mute notifications' : 'Unmute notifications'}
+              title={soundOn ? 'Mute' : 'Unmute'}
+            >
+              {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
 
             {/* Theme toggle */}

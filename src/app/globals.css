@@ -274,3 +274,52 @@ button, a {
   background: oklch(0.50 0.22 264 / 0.15);
   color: oklch(0.38 0.20 264);
 }
+
+/* Wallpaper glass effect — frosted rows when background image is active */
+[data-wallpaper="1"] .message-card .flex {
+  border-radius: 8px;
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+}
+[data-wallpaper="1"] .message-card:hover .flex {
+  background: oklch(0 0 0 / 0.08) !important;
+}
+.dark [data-wallpaper="1"] .message-card .flex {
+  background: oklch(0 0 0 / 0.35);
+}
+.dark [data-wallpaper="1"] .message-card:hover .flex {
+  background: oklch(0 0 0 / 0.45) !important;
+}
+.light [data-wallpaper="1"] .message-card .flex {
+  background: oklch(1 0 0 / 0.55);
+}
+.light [data-wallpaper="1"] .message-card:hover .flex {
+  background: oklch(1 0 0 / 0.7) !important;
+}
+/* Frosted composer + typing bar when wallpaper active */
+[data-wallpaper="1"] .border-t {
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  background: var(--background) / 0.6;
+}
+
+/* Smooth pulse for online indicator */
+@keyframes online-ping {
+  0% { transform: scale(1); opacity: 0.9; }
+  70% { transform: scale(2); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.online-ping {
+  animation: online-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Reaction pop animation */
+@keyframes reaction-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.animate-reaction-pop {
+  animation: reaction-pop 0.4s ease;
+}

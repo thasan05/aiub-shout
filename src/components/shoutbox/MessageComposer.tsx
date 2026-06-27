@@ -10,6 +10,22 @@ import Link from 'next/link'
 const MAX_CHARS = 200
 const QUICK_EMOJIS = ['😂', '🔥', '💀', '❤️', '👍', '😭', '🙏', '💯', '😮', '🤔', '👀', '✨']
 
+const SHORTCODES: Record<string, string> = {
+  ':fire:': '🔥', ':heart:': '❤️', ':skull:': '💀', ':100:': '💯',
+  ':pray:': '🙏', ':thumbsup:': '👍', ':ok:': '👌', ':laugh:': '😂',
+  ':cry:': '😭', ':eyes:': '👀', ':sparkles:': '✨', ':think:': '🤔',
+  ':wow:': '😮', ':gg:': '🎉', ':clap:': '👏', ':star:': '⭐',
+  ':broken:': '💔', ':sweat:': '😅', ':cool:': '😎', ':angry:': '😡',
+}
+
+function applyShortcodes(text: string): string {
+  let result = text
+  for (const [code, emoji] of Object.entries(SHORTCODES)) {
+    result = result.replaceAll(code, emoji)
+  }
+  return result
+}
+
 function useDebounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: number) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   return useCallback((...args: Parameters<T>) => {
@@ -60,7 +76,7 @@ export default function MessageComposer({ parentId, compact = false, onSent, onC
   }, 300)
 
   async function send() {
-    const content = text.trim()
+    const content = applyShortcodes(text.trim())
     if (!content || !currentUser || sendingRef.current) return
     sendingRef.current = true
 

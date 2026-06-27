@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { format } from 'date-fns'
-import { MessageSquare, MoreHorizontal, Trash2, Flag, Copy } from 'lucide-react'
+import { MessageSquare, MoreHorizontal, Trash2, Flag, Copy, ShieldCheck } from 'lucide-react'
 import { useShoutboxStore } from '@/store/shoutboxStore'
 import ReportModal from './ReportModal'
 import ReplyThread from './ReplyThread'
 import { type Message, type ReactionEmoji } from '@/types'
 import { toast } from 'sonner'
+import { useRelativeTime } from '@/hooks/useRelativeTime'
 
 const REACTIONS: { emoji: ReactionEmoji; label: string }[] = [
   { emoji: '👍', label: 'Helpful' },
@@ -97,14 +97,7 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
   const isOwn = currentUser?.id === message.user_id
   const isPending = message.is_pending
   const activeReactions = message.reactions.filter(r => r.count > 0)
-
-  const formattedTime = useCallback(() => {
-    try {
-      return format(new Date(message.created_at), 'h:mm a')
-    } catch {
-      return ''
-    }
-  }, [message.created_at])
+  const relativeTime = useRelativeTime(message.created_at)
 
   async function handleReaction(emoji: ReactionEmoji) {
     if (!currentUser) { toast.error('Sign in to react'); return }
@@ -153,11 +146,11 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
         <div className="flex items-baseline gap-0 px-4 py-[3px] rounded-md hover:bg-black/[0.035] dark:hover:bg-white/[0.03] transition-colors">
           {/* Timestamp */}
           <span
-            title={message.created_at}
+            title={new Date(message.created_at).toLocaleString()}
             className="text-[11px] tabular-nums shrink-0 select-none mr-3 mt-px"
             style={{ color: 'var(--muted-foreground)', opacity: 0.45, minWidth: '4rem' }}
           >
-            {isPending ? '···' : formattedTime()}
+            {isPending ? '···' : relativeTime}
           </span>
 
           {/* Username + content inline */}
@@ -165,6 +158,12 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
             <span className="font-semibold" style={{ color: message.nickname_color }}>
               {message.nickname}
             </span>
+            {isOwn && (
+              <span className="ml-1 text-[9px] font-bold px-1 py-px rounded uppercase tracking-wide"
+                style={{ background: 'var(--accent-dim)', color: 'var(--primary)', verticalAlign: 'middle' }}>
+                You
+              </span>
+            )}
             <span style={{ color: 'var(--muted-foreground)', opacity: 0.55 }}>: </span>
             <span className="message-content" style={{ color: 'var(--foreground)' }}>
               <MessageContent text={message.content} query={searchQuery} />

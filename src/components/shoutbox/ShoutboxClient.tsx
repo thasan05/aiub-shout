@@ -11,6 +11,7 @@ import TypingIndicator from './TypingIndicator'
 import WallpaperPicker from './WallpaperPicker'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useWallpaper } from '@/hooks/useWallpaper'
+import { useNotificationSound } from '@/hooks/useNotificationSound'
 
 interface Props {
   initialMessages: Message[]
@@ -38,6 +39,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
   const [tabUnread, setTabUnread] = useState(0)
   const [wallpaperOpen, setWallpaperOpen] = useState(false)
   const { wallpaperUrl } = useWallpaper()
+  const { ping } = useNotificationSound()
 
   useKeyboardShortcuts({
     onOpenSearch: () => window.dispatchEvent(new CustomEvent('shoutbox:open-search')),
@@ -138,6 +140,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
             addReply(raw.parent_id, message)
           } else {
             addMessage(message)
+            ping()
             if (!document.hasFocus()) setTabUnread(n => n + 1)
           }
         }
@@ -254,6 +257,7 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
 
       <div
         className="flex-1 flex flex-col overflow-hidden w-full max-w-3xl mx-auto"
+        data-wallpaper={wallpaperUrl ? '1' : undefined}
         style={wallpaperUrl ? {
           backgroundImage: `url(${wallpaperUrl})`,
           backgroundSize: 'cover',

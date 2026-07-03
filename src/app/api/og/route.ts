@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
   if (!url) return NextResponse.json({ error: 'No URL' }, { status: 400 })
 
   try {
-    new URL(url)
+    const parsed = new URL(url)
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
+    }
   } catch {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }

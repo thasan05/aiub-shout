@@ -180,7 +180,7 @@ export const useShoutboxStore = create<ShoutboxState>()(
       name: 'aiub-shout-cache',
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
-        messages: state.messages.slice(0, 50),
+        messages: state.messages.slice(0, 50).filter(m => !m.is_pending),
       }),
     }
   )

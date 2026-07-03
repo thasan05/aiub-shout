@@ -32,6 +32,9 @@ export function moderateContent(content: string): ModerationResult {
   if (REPEATED_CHARS.test(trimmed)) {
     return { allowed: false, reason: 'Spam detected' }
   }
+  if (ALL_CAPS_LONG.test(trimmed)) {
+    return { allowed: false, reason: 'Please avoid typing in all caps' }
+  }
 
   const lower = trimmed.toLowerCase()
   for (const word of BLOCKED_WORDS) {

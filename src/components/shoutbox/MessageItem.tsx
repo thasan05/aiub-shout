@@ -11,7 +11,7 @@ import { type Message, type ReactionEmoji } from '@/types'
 import { toast } from 'sonner'
 import { useRelativeTime } from '@/hooks/useRelativeTime'
 
-const URL_REGEX_PREVIEW = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
 
 const REACTIONS: { emoji: ReactionEmoji; label: string }[] = [
   { emoji: '👍', label: 'Helpful' },
@@ -20,8 +20,6 @@ const REACTIONS: { emoji: ReactionEmoji; label: string }[] = [
   { emoji: '💀', label: 'Dead' },
   { emoji: '❤️', label: 'Relatable' },
 ]
-
-const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g
 
 function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>
@@ -107,7 +105,7 @@ export default function MessageItem({ message, isReply = false, searchQuery = ''
   const canEdit = isOwn && !isPending && (Date.now() - new Date(message.created_at).getTime()) < 5 * 60 * 1000
   const firstUrl = useMemo(() => {
     if (message.is_pending || isReply) return null
-    const m = message.content.match(URL_REGEX_PREVIEW)
+    const m = message.content.match(new RegExp(URL_REGEX.source, 'g'))
     return m?.[0] ?? null
   }, [message.content, message.is_pending, isReply])
 

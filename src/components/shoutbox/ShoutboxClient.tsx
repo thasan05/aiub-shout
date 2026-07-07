@@ -152,9 +152,16 @@ export default function ShoutboxClient({ initialMessages, initialUser, initialOn
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         (payload) => {
-          const updated = payload.new as { id: string; is_deleted: boolean }
+          const updated = payload.new as {
+            id: string; is_deleted: boolean; content: string; edited_at: string | null
+          }
           if (updated.is_deleted) {
             useShoutboxStore.getState().removeMessage(updated.id)
+          } else {
+            updateMessage(updated.id, {
+              content: updated.content,
+              edited_at: updated.edited_at ?? null,
+            })
           }
         }
       )

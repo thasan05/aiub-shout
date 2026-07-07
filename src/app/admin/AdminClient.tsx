@@ -169,11 +169,18 @@ export default function AdminClient({ adminNickname }: { adminNickname: string }
 
   async function toggleBan(user: AdminUser) {
     const action = user.is_banned ? 'unban' : 'ban'
-    if (!window.confirm(`${action === 'ban' ? 'Ban' : 'Unban'} ${user.nickname}?`)) return
+    let reason = 'Banned by admin'
+    if (action === 'ban') {
+      const input = window.prompt(`Ban reason for ${user.nickname} (optional):`, '')
+      if (input === null) return // cancelled
+      if (input.trim()) reason = input.trim()
+    } else {
+      if (!window.confirm(`Unban ${user.nickname}?`)) return
+    }
     setActionLoading(user.id + '-ban')
     const res = await fetch(`/api/admin/users/${user.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, reason: 'Banned by admin' }),
+      body: JSON.stringify({ action, reason }),
     })
     setActionLoading(null)
     if (res.ok) {

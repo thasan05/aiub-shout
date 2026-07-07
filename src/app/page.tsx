@@ -46,6 +46,7 @@ export default async function HomePage() {
     content: m.content as string,
     parent_id: m.parent_id as string | null,
     created_at: m.created_at as string,
+    edited_at: (m.edited_at as string | null) ?? null,
     is_deleted: false,
     nickname: m.nickname as string,
     nickname_color: m.nickname_color as string,

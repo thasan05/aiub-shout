@@ -60,9 +60,9 @@ export async function PATCH(
   if (content.trim().length > 200) return NextResponse.json({ error: 'Too long' }, { status: 400 })
 
   const { data: msg } = await supabase
-    .from('messages').select('user_id, created_at').eq('id', id).single()
+    .from('messages').select('user_id, created_at, is_deleted').eq('id', id).single()
 
-  if (!msg || msg.user_id !== user.id) {
+  if (!msg || msg.user_id !== user.id || msg.is_deleted) {
     return NextResponse.json({ error: 'Not your message' }, { status: 403 })
   }
 

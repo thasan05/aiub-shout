@@ -31,6 +31,17 @@ export async function PATCH(
   const { id } = await params
   const { action, reason } = await request.json()
 
+  if (!['ban', 'unban'].includes(action)) {
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+  }
+
+  // Prevent banning admin accounts (including self)
+  const { data: targetUser } = await supabase
+    .from('users').select('is_admin').eq('id', id).single()
+  if (targetUser?.is_admin) {
+    return NextResponse.json({ error: 'Cannot ban admin accounts' }, { status: 403 })
+  }
+
   if (action === 'ban') {
     const { error } = await supabase
       .from('users')
@@ -43,8 +54,6 @@ export async function PATCH(
       .update({ is_banned: false, ban_reason: null })
       .eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  } else {
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
   return NextResponse.json({ ok: true })

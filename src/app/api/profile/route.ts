@@ -38,6 +38,7 @@ export async function PATCH(request: NextRequest) {
 
   const { error } = await supabase
     .from('users').update({ nickname: trimmed, nickname_color }).eq('id', user.id)
+  if (error?.code === '23505') return NextResponse.json({ error: 'Nickname already taken' }, { status: 409 })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ success: true })

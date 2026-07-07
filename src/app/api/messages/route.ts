@@ -66,7 +66,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { content, parent_id } = body
 
-  const mod = moderateContent(content ?? '')
+  if (typeof content !== 'string') {
+    return NextResponse.json({ error: 'Invalid content' }, { status: 400 })
+  }
+
+  const mod = moderateContent(content)
   if (!mod.allowed) return NextResponse.json({ error: mod.reason }, { status: 400 })
 
   // Fetch profile and rate limit in parallel to cut latency

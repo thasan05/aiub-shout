@@ -34,7 +34,12 @@ export async function GET(request: NextRequest) {
     const contentType = res.headers.get('content-type') ?? ''
     if (!contentType.includes('text/html')) return NextResponse.json({ url }, { status: 200 })
 
+    // Cap at 500 KB to avoid reading huge pages
+    const contentLength = res.headers.get('content-length')
+    if (contentLength && parseInt(contentLength) > 524_288) return NextResponse.json({ url }, { status: 200 })
+
     const html = await res.text()
+    if (html.length > 524_288) return NextResponse.json({ url }, { status: 200 })
 
     function getMeta(prop: string): string | undefined {
       const ogMatch = html.match(new RegExp(`<meta[^>]*property=["']og:${prop}["'][^>]*content=["']([^"']+)["']`, 'i'))

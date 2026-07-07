@@ -7,7 +7,9 @@ import { isValidAiubEmail } from '@/lib/moderation'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  // Validate next to prevent open redirect — must be relative path, not //host
+  const rawNext = searchParams.get('next') ?? '/'
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
 
   if (!code) {
     return NextResponse.redirect(`${origin}/auth/login?error=missing_code`)
